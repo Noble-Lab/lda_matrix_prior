@@ -2,21 +2,21 @@
 
 **Authors: Alan Min**
 
-In this vignette, we will be describing how to use the matrix prior from the paper *Matrix prior for data transfer between single cell data types in latent Dirichlet allocation (2022)*. This is a novel prior for a method that applies LDA (Blei *et al*, 2003), a topic modeling algorithm. The prior aims to incorporate information from reference datasets into the analysis of a target dataset. We will start with installation of the code, which is packaged in Java and available as a command line tool. We will give examples of how to apply the method to a small example data set modified from Ma *et al*, 2020. Finally, we will visualize the results of the method in Python.
+In this vignette, we describe how to use the matrix prior from the paper, "Matrix prior for data transfer between single cell data types in latent Dirichlet allocation (2022)." This is a novel prior that was designed for use with the latent Dirichlet allocation (LDA) topic modeling method (Blei *et al*, 2003). The prior aims to incorporate information from a large reference dataset into the analysis of a target dataset. We start with installation of the code, which is packaged in Java and available as a command line tool. We then describe how to apply the method to a small example data set, modified from Ma *et al*, 2020. Finally, we visualize the results.
 
 ## Installation
 
 The code for the matrix prior is available at https://github.com/gevirl/LDA. 
 
-This program is a java application that is a NetBeans-8.1 project. It can be run without opening the project in Netbeans by using the dist.zip file distribution. This zip file includes the jar file and needed libraries. 
+This program is a java application that is a NetBeans-8.1 project. It can be run without opening the project in Netbeans by using the dist.zip file distribution. This zip file includes the jar file and required libraries. 
 
 1. Clone the GitHub repository
 
-2. Unzip the `LDA-master.zip`
+2. Unzip the file `LDA-master.zip`
 
 3. Unzip the distribution file `dist.zip`
 
-4. The program can be used by running the jar file  `dist/LatentDirichletAllocation.jar` (note that your file path may be slightly different, so you will have to locate this file and use it)
+4. The program can be used by running the jar file  `dist/LatentDirichletAllocation.jar` (note that your file path may be slightly different, so you will have to locate this file and use it).
 
 The main entry point to the jar file is the class: `org.rhwlab.lda.cache.matrix.LDA_CommandLine`.
 After unzipping the dist.zip file, the program can be run with:
@@ -25,25 +25,25 @@ After unzipping the dist.zip file, the program can be run with:
 
 ## Using the package on a simple example
 
-Download the files <span style="color:blue">**ADD THE LINKS FOR FILES HERE**</span>. These files include downsampled versions of the Ma *et al* (2020) data. The reference and target data are both samples from this dataset, although in practice you may want to use data from different sources. Here, the reference dataset has 1000 cells and the target data set has 100 cells, each with 1000 genes. The data is stored in a sparse matrix format, called a `.bow` file, which stands for "bag of words." The first line of each bow file is the number of cells in the data set (number of rows in the matrix). The second line is the number of genes / peak regions (number of columns in the matrix). The third line is a filler line, and is by default set to 1000. 
+Download the files <span style="color:blue">**ADD THE LINKS FOR FILES HERE**</span>. These files include downsampled versions of the Ma *et al* (2020) data. The reference and target data are both samples from this dataset, although in practice you may want to use data from different sources. Here, the reference dataset has 1000 cells and the target data set has 100 cells, each with 1000 genes. The data is stored in a sparse matrix format, called a `.bow` file, which stands for "bag of words." The first line of each bow file is the number of cells in the data set (number of rows in the matrix). The second line is the number of genes / peak regions (number of columns in the matrix). The third line is a filler line, and is by default set to 1000. (FIXME: Not sure what it means to set a line to 1000. --Bill)
 
-1. We will start by running the LDA algorithm on the reference data using a uniform prior. We can use the following command
+1. Start by running the LDA algorithm on the reference data using a uniform prior, as follows:
 
     `java -cp LDA-master/dist/LatentDirichletAllocation.jar org.rhwlab.lda.cache.matrix.LDA_CommandLine -ib reference_small.bow -out uniform_ref -t 15 -v 1 -lda -maxLike -alpha 3 -beta 800 -ldaIterations 1000 -seed 23`
     
-    This command takes in the `reference.bow` file and applies LDA to it. It puts the output into a folder called uniform ref (`-out` option), uses 15 topics (`-t` option), gives verbosity level at 1 (`-v` option), runs LDA (`-LDA` option), uses the maximum likelihood option (`-maxLike` option), sets $c_\alpha$ to be 3 (`-alpha` option), sets the $c_\beta$ parameter to be 800 (`-beta` option), sets the number of iterations to be 1000 (`-ldaIterations` option), and sets a seed (`-seed` option).
+    This command takes in the `reference.bow` file and applies LDA to it. It puts the output into a folder called uniform_ref (`-out` option), uses 15 topics (`-t` option), gives verbosity level at 1 (`-v` option), runs LDA (`-LDA` option), uses the maximum likelihood option (`-maxLike` option), sets $c_\alpha$ to be 3 (`-alpha` option), sets the $c_\beta$ parameter to be 800 (`-beta` option), sets the number of iterations to be 1000 (`-ldaIterations` option), and sets a seed (`-seed` option).
 
-2. We now create a prior using the result of the LDA on the reference data. We can use the file make_priors.py to read in the the output, add a small pseudocount to avoid 0 counts, normalize each row to sum to 1 (the required format for the matrix prior), and create a file in a format compatible with the matrix prior functionality of the package. We use the command 
+2. Create a prior using the result of the LDA on the reference data. We can use the file make_priors.py to read in the the output, add a small pseudocount to avoid 0 counts, normalize each row to sum to 1 (the required format for the matrix prior), and create a file in a format compatible with the matrix prior functionality of the package. We use the command 
 
     `python src/make_priors.py uniform_ref/reference_small_topics15_alpha3.000_beta800.000/MaxLikelihoodWordTopicCounts.txt prior.txt 15`
     
-    This results in an output file called prior.txt that contains the prior that can be used for 
+    This results are stored in an output file called `prior.txt` that contains the prior that can be used for FIXME?
 
-3. We can use the matrix prior method now to analyze the target data. This can be done with the command 
+3. Use the matrix prior method to analyze the target data, as follows:
 
     `java -cp LDA-master/dist/LatentDirichletAllocation.jar org.rhwlab.lda.cache.matrix.LDA_CommandLine -ib target_small.bow -out output -t 15 -v 1 -lda -maxLike -alpha 3 -betaFile prior.txt -beta 1000 -ldaIterations 1000 -seed 723`
 
-3. We can also run the LDA algorithm on the target data using a uniform prior. This will allow us to compare the results with when a reference matrix prior is used. We use the following command
+4. Run the LDA algorithm on the target data using a uniform prior. This will allow us to compare the results with when a reference matrix prior is used. We use the following command
 
     `java -cp LDA-master/dist/LatentDirichletAllocation.jar org.rhwlab.lda.cache.matrix.LDA_CommandLine -ib target_small.bow -out uniform_target -t 15 -v 1 -lda -maxLike -alpha 3 -beta 800 -ldaIterations 1000 -seed 23`
 
@@ -75,7 +75,7 @@ This results in a UMAP image of the target data using the matrix prior.
 
 ![matrix_prior_result.png](matrix_prior_result.png)
 
-We can make a similar plot using the uniform prior.
+We can make a similar plot using the uniform prior, as follows:
 
 ```python
 dt = load_dt(f"uniform_target/target_small_topics15_alpha3.000_beta800.000/MaxLikelihoodDocumentTopicCounts.txt")
