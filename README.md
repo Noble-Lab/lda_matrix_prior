@@ -37,7 +37,7 @@ Download the files <span style="color:blue">**ADD THE LINKS FOR FILES HERE**</sp
 
     `python src/make_priors.py uniform_ref/reference_small_topics15_alpha3.000_beta800.000/MaxLikelihoodWordTopicCounts.txt prior.txt 15`
     
-    This results are stored in an output file called `prior.txt` that contains the prior that can be used for FIXME?
+    The results are stored in an output file called `prior.txt` that contains the prior that can be used for FIXME?
 
 3. Use the matrix prior method to analyze the target data, as follows:
 
