@@ -25,7 +25,8 @@ After unzipping the dist.zip file, the program can be run with:
 
 ## Using the package on a simple example
 
-Download the files <span style="color:blue">**ADD THE LINKS FOR FILES HERE**</span>. These files include downsampled versions of the Ma *et al* (2020) data. The reference and target data are both samples from this dataset, although in practice you may want to use data from different sources. Here, the reference dataset has 1000 cells and the target data set has 100 cells, each with 1000 genes. The data is stored in a sparse matrix format, called a `.bow` file, which stands for "bag of words." The first line of each bow file is the number of cells in the data set (number of rows in the matrix). The second line is the number of genes / peak regions (number of columns in the matrix). The third line is a filler line, and is by default set to 1000. (FIXME: Not sure what it means to set a line to 1000. --Bill)
+Download the files <span style="color:blue">**ADD THE LINKS FOR FILES HERE**</span>. These files include downsampled versions of the Ma *et al* (2020) data. The reference and target data are both samples from this dataset, although in practice you may want to use data from different sources. Here, the reference dataset has 1000 cells and the target data set has 100 cells, each with 1000 genes. The data is stored in a sparse matrix format, called a `.bow` file, which stands for "bag of words." The first line of each bow file is the number of cells in the data set (number of rows in the matrix). The second line is the number of genes / peak regions (number of columns in the matrix). The third line is a filler line, and is by default set to "1000". 
+%(FIXME: Not sure what it means to set a line to 1000. --Bill)
 
 1. Start by running the LDA algorithm on the reference data using a uniform prior, as follows:
 
@@ -37,7 +38,7 @@ Download the files <span style="color:blue">**ADD THE LINKS FOR FILES HERE**</sp
 
     `python src/make_priors.py uniform_ref/reference_small_topics15_alpha3.000_beta800.000/MaxLikelihoodWordTopicCounts.txt prior.txt 15`
     
-    The results are stored in an output file called `prior.txt` that contains the prior that can be used for FIXME?
+    The results are stored in an output file called `prior.txt` that contains the prior that can be used for the prior?
 
 3. Use the matrix prior method to analyze the target data, as follows:
 
