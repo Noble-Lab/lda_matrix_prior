@@ -29,6 +29,7 @@ After unzipping the dist.zip file, the program can be run with:
 
 The example data are available in the `data` folder in the github page. The reference and target data are both samples from this dataset, although in practice you may want to use data from different sources. These files include downsampled versions of the Ma *et al* 2020 data. There is a medium-sized example data set and a small-sized example data set available. In the medium data, the reference dataset has 1000 cells and the target data set has 100 cells, each with 20,000 genes. We use the medium data for our examples, but the small data set can be used for quicker results. The data is stored in a sparse matrix format, called a `.bow` file, which stands for "bag of words." The first line of each bow file is the number of cells in the data set (number of rows in the matrix). The second line is the number of genes / peak regions (number of columns in the matrix). The third line is a line that is not used by the Java program, and can be set to any number.
 
+
 1. Start by running the LDA algorithm on the reference data using a uniform prior, as follows:
 
     `java -cp LDA-master/dist/LatentDirichletAllocation.jar org.rhwlab.lda.cache.matrix.LDA_CommandLine -ib data/reference_medium.bow -out uniform_ref -t 15 -v 1 -lda -maxLike -alpha 3 -beta 800 -ldaIterations 1000 -seed 23`
@@ -39,7 +40,7 @@ The example data are available in the `data` folder in the github page. The refe
 
     `python src/make_priors.py uniform_ref/reference_medium_topics15_alpha3.000_beta800.000/MaxLikelihoodWordTopicCounts.txt prior.txt 15`
     
-    This results are stored in an output file called `prior.txt` that contains the prior in a format that can be input into the Java program on the command line.
+    The results are stored in an output file called `prior.txt` that contains the prior in a format that can be input into the Java program on the command line.
 
 3. Use the matrix prior method to analyze the target data, as follows:
 
