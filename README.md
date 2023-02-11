@@ -1,14 +1,16 @@
-# LDA Vignette
+# Vignette for using a matrix prior with latent Dirichlet allocation
 
-**Authors: Alan Min**
+In this vignette, we describe how to generate and apply a matrix prior for latent Dirichlet allocation, as reported in the paper: 
 
-In this vignette, we describe how to use the matrix prior from the paper, "Matrix prior for data transfer between single cell data types in latent Dirichlet allocation (2022)." This is a novel prior that was designed for use with the latent Dirichlet allocation (LDA) topic modeling method (Blei *et al*, 2003). The prior aims to incorporate information from a large reference dataset into the analysis of a target dataset. We start with installation of the code, which is packaged in Java and available as a command line tool. We then describe how to apply the method to a small example data set, modified from Ma *et al*, 2020. Finally, we visualize the results.
+`Alan Min, Timothy J Durham, Louis Gevirtzman, and William S Noble. Matrix prior for data transfer between single cell data types in latent dirichlet allocation. bioRxiv, pages 2022–11, 2022.`
+
+We adapt some of the documentation originally from Louis Gevirtzman. The prior aims to incorporate information from a large reference dataset into the analysis of a target dataset. We start with installation of the code, which is packaged in Java and available as a command line tool. We then describe how to apply the method to a small example data set, modified from Ma *et al*, 2020. Finally, we visualize the results.
 
 ## Installation
 
 The code for the matrix prior is available at https://github.com/gevirl/LDA. 
 
-This program is a java application that is a NetBeans-8.1 project. It can be run without opening the project in Netbeans by using the dist.zip file distribution. This zip file includes the jar file and required libraries. 
+This program is a java application that can be run using the dist.zip file distribution. This zip file includes the jar file and required libraries. 
 
 1. Clone the GitHub repository
 
@@ -21,35 +23,42 @@ This program is a java application that is a NetBeans-8.1 project. It can be run
 The main entry point to the jar file is the class: `org.rhwlab.lda.cache.matrix.LDA_CommandLine`.
 After unzipping the dist.zip file, the program can be run with:
 
-`java -jar  “your_directory”/dist/LatentDirichletAllocation.jar [options]`
+`java -jar  “your_directory”/dist/LatentDirichletAllocation.jar [entry point] [options]`
 
 ## Using the package on a simple example
 
-Download the files <span style="color:blue">**ADD THE LINKS FOR FILES HERE**</span>. These files include downsampled versions of the Ma *et al* (2020) data. The reference and target data are both samples from this dataset, although in practice you may want to use data from different sources. Here, the reference dataset has 1000 cells and the target data set has 100 cells, each with 1000 genes. The data is stored in a sparse matrix format, called a `.bow` file, which stands for "bag of words." The first line of each bow file is the number of cells in the data set (number of rows in the matrix). The second line is the number of genes / peak regions (number of columns in the matrix). The third line is a filler line, and is by default set to 1000. (FIXME: Not sure what it means to set a line to 1000. --Bill)
+The example data are available in the `data` folder in the github page. The reference and target data are both samples from this dataset, although in practice you may want to use data from different sources. These files include downsampled versions of the Ma *et al* 2020 data. There is a medium-sized example data set and a small-sized example data set available. In the medium data, the reference dataset has 1000 cells and the target data set has 100 cells, each with 20,000 genes. We use the medium data for our examples, but the small data set can be used for quicker results. The data is stored in a sparse matrix format, called a `.bow` file, which stands for "bag of words." The first line of each bow file is the number of cells in the data set (number of rows in the matrix). The second line is the number of genes / peak regions (number of columns in the matrix). The third line is a line that is not used by the Java program, and can be set to any number.
 
 1. Start by running the LDA algorithm on the reference data using a uniform prior, as follows:
 
-    `java -cp LDA-master/dist/LatentDirichletAllocation.jar org.rhwlab.lda.cache.matrix.LDA_CommandLine -ib reference_small.bow -out uniform_ref -t 15 -v 1 -lda -maxLike -alpha 3 -beta 800 -ldaIterations 1000 -seed 23`
+    `java -cp LDA-master/dist/LatentDirichletAllocation.jar org.rhwlab.lda.cache.matrix.LDA_CommandLine -ib data/reference_medium.bow -out uniform_ref -t 15 -v 1 -lda -maxLike -alpha 3 -beta 800 -ldaIterations 1000 -seed 23`
     
     This command takes in the `reference.bow` file and applies LDA to it. It puts the output into a folder called uniform_ref (`-out` option), uses 15 topics (`-t` option), gives verbosity level at 1 (`-v` option), runs LDA (`-LDA` option), uses the maximum likelihood option (`-maxLike` option), sets $c_\alpha$ to be 3 (`-alpha` option), sets the $c_\beta$ parameter to be 800 (`-beta` option), sets the number of iterations to be 1000 (`-ldaIterations` option), and sets a seed (`-seed` option).
 
 2. Create a prior using the result of the LDA on the reference data. We can use the file make_priors.py to read in the the output, add a small pseudocount to avoid 0 counts, normalize each row to sum to 1 (the required format for the matrix prior), and create a file in a format compatible with the matrix prior functionality of the package. We use the command 
 
-    `python src/make_priors.py uniform_ref/reference_small_topics15_alpha3.000_beta800.000/MaxLikelihoodWordTopicCounts.txt prior.txt 15`
+    `python src/make_priors.py uniform_ref/reference_medium_topics15_alpha3.000_beta800.000/MaxLikelihoodWordTopicCounts.txt prior.txt 15`
     
-    This results are stored in an output file called `prior.txt` that contains the prior that can be used for FIXME?
+    This results are stored in an output file called `prior.txt` that contains the prior in a format that can be input into the Java program on the command line.
 
 3. Use the matrix prior method to analyze the target data, as follows:
 
-    `java -cp LDA-master/dist/LatentDirichletAllocation.jar org.rhwlab.lda.cache.matrix.LDA_CommandLine -ib target_small.bow -out output -t 15 -v 1 -lda -maxLike -alpha 3 -betaFile prior.txt -beta 1000 -ldaIterations 1000 -seed 723`
+    `java -cp LDA-master/dist/LatentDirichletAllocation.jar org.rhwlab.lda.cache.matrix.LDA_CommandLine -ib data/target_medium.bow -out output -t 15 -v 1 -lda -maxLike -alpha 3 -betaFile prior.txt -beta 1000 -ldaIterations 1000 -seed 723`
 
 4. Run the LDA algorithm on the target data using a uniform prior. This will allow us to compare the results with when a reference matrix prior is used. We use the following command
 
-    `java -cp LDA-master/dist/LatentDirichletAllocation.jar org.rhwlab.lda.cache.matrix.LDA_CommandLine -ib target_small.bow -out uniform_target -t 15 -v 1 -lda -maxLike -alpha 3 -beta 800 -ldaIterations 1000 -seed 23`
+    `java -cp LDA-master/dist/LatentDirichletAllocation.jar org.rhwlab.lda.cache.matrix.LDA_CommandLine -ib data/target_medium.bow -out uniform_target -t 15 -v 1 -lda -maxLike -alpha 3 -beta 800 -ldaIterations 1000 -seed 23`
 
 ## Visualizing the results in Python
 
-We can now use Python to visualize the results from the simple analysis. We will be using UMAP, a dimensionality reduction tool (McInnes *et al*, 2018) to reduce the output from the 15 output topic dimensions to 2 dimensions for visualization.
+We can now use Python to visualize the results from the simple analysis. We will be using UMAP, a dimensionality reduction tool (McInnes *et al*, 2018) to reduce the output from the 15 topic dimensions to 2 dimensions for visualization.
+
+We use the following versions of packages:
+
+`UMAP Version: 0.5.1
+Numpy Version: 1.19.1
+Matplotlib.pyplot Version: 3.4.2)
+Seaborn: 0.11.1`
 
 ```python
 import umap
@@ -63,7 +72,7 @@ def load_dt(fn) :
     normalize_matrix_by_row(dt)
     return(dt)
 
-dt = load_dt(f"output/target_small_topics15_alpha3.000_beta1000.000/MaxLikelihoodDocumentTopicCounts.txt")
+dt = load_dt(f"output/target_medium_topics15_alpha3.000_beta1000.000/MaxLikelihoodDocumentTopicCounts.txt")
 labels = pd.read_csv("target_labels.csv", header=None).to_numpy().flatten()
 u = umap.UMAP(random_state=23)
 fitted = u.fit_transform(dt)
@@ -78,7 +87,7 @@ This results in a UMAP image of the target data using the matrix prior.
 We can make a similar plot using the uniform prior, as follows:
 
 ```python
-dt = load_dt(f"uniform_target/target_small_topics15_alpha3.000_beta800.000/MaxLikelihoodDocumentTopicCounts.txt")
+dt = load_dt(f"uniform_target/target_medium_topics15_alpha3.000_beta800.000/MaxLikelihoodDocumentTopicCounts.txt")
 labels = pd.read_csv("target_labels.csv", header=None).to_numpy().flatten()
 u = umap.UMAP(random_state=23)
 fitted = u.fit_transform(dt)
@@ -90,7 +99,7 @@ plt.legend(bbox_to_anchor=(1.05, 1))
 
 ## Other options in the package
 
-The various options will be listed if the jar file is run with -h or -help
+These are the options that are also listed on the LDA GitHub repository at https://github.com/gevirl/LDA. The various options will be listed if the jar file is run with -h or -help
 
 `java -jar LatentDirichletAllocation.jar -h`
 
@@ -122,6 +131,7 @@ _Processing Directives:_
 		partition validation, partitions BOW file and writes commands to stdout
 
 _LDA Options:_
+
 	-a, -alpha (float)
 		Dirichlet concentration parameter for document distribution, default=0.1
         
@@ -203,11 +213,11 @@ Includes all LDA, Point Estimation, and Chib Options:_
 
 ## Citations
 David M Blei, A Ng, and M Jordan. Latent dirichlet allocation journal of machine learning research (3).
-Journal of Machine Learning Research, 2003
+Journal of Machine Learning Research, 2003.
 
 Sai Ma, Bing Zhang, Lindsay M LaFave, Andrew S Earl, Zachary Chiang, Yan Hu, Jiarui Ding, Alison
 Brack, Vinay K Kartha, Tristan Tay, et al. Chromatin potential identified by shared single-cell profiling
-of rna and chromatin. Cell, 183(4):1103–1116, 2020
+of rna and chromatin. Cell, 183(4):1103–1116, 2020.
 
 Leland McInnes, John Healy, and James Melville. Umap: Uniform manifold approximation and projection
 for dimension reduction. arXiv preprint arXiv:1802.03426, 2018.
