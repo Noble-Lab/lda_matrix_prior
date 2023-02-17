@@ -32,23 +32,23 @@ The example data are available in the `data` folder in the github page. The refe
 
 1. Start by running the LDA algorithm on the reference data using a uniform prior, as follows:
 
-    `java -cp LDA-master/dist/LatentDirichletAllocation.jar org.rhwlab.lda.cache.matrix.LDA_CommandLine -ib data/reference_medium.bow -out uniform_ref -t 15 -v 1 -lda -maxLike -alpha 3 -beta 800 -ldaIterations 1000 -seed 23`
+    `java -cp LDA-master/dist/LatentDirichletAllocation.jar org.rhwlab.lda.cache.matrix.LDA_CommandLine -ib data/atac_reference.bow -out uniform_ref -t 15 -v 1 -lda -maxLike -alpha 3 -beta 800 -ldaIterations 1000 -seed 123`
     
     This command takes in the `reference.bow` file and applies LDA to it. It puts the output into a folder called uniform_ref (`-out` option), uses 15 topics (`-t` option), gives verbosity level at 1 (`-v` option), runs LDA (`-LDA` option), uses the maximum likelihood option (`-maxLike` option), sets $c_\alpha$ to be 3 (`-alpha` option), sets the $c_\beta$ parameter to be 800 (`-beta` option), sets the number of iterations to be 1000 (`-ldaIterations` option), and sets a seed (`-seed` option).
 
 2. Create a prior using the result of the LDA on the reference data. We can use the file make_priors.py to read in the the output, add a small pseudocount to avoid 0 counts, normalize each row to sum to 1 (the required format for the matrix prior), and create a file in a format compatible with the matrix prior functionality of the package. We use the command 
 
-    `python src/make_priors.py uniform_ref/reference_medium_topics15_alpha3.000_beta800.000/MaxLikelihoodWordTopicCounts.txt prior.txt 15`
+    `python src/make_priors.py uniform_ref/atac_reference_topics15_alpha3.000_beta800.000/MaxLikelihoodWordTopicCounts.txt prior.txt 15`
     
     The results are stored in an output file called `prior.txt` that contains the prior in a format that can be input into the Java program on the command line.
 
 3. Use the matrix prior method to analyze the target data, as follows:
 
-    `java -cp LDA-master/dist/LatentDirichletAllocation.jar org.rhwlab.lda.cache.matrix.LDA_CommandLine -ib data/target_medium.bow -out output -t 15 -v 1 -lda -maxLike -alpha 3 -betaFile prior.txt -beta 1000 -ldaIterations 1000 -seed 723`
+    `java -cp LDA-master/dist/LatentDirichletAllocation.jar org.rhwlab.lda.cache.matrix.LDA_CommandLine -ib data/atac_target.bow -out output -t 15 -v 1 -lda -maxLike -alpha 3 -betaFile prior.txt -beta 1000 -ldaIterations 1000 -seed 123`
 
 4. Run the LDA algorithm on the target data using a uniform prior. This will allow us to compare the results with when a reference matrix prior is used. We use the following command
 
-    `java -cp LDA-master/dist/LatentDirichletAllocation.jar org.rhwlab.lda.cache.matrix.LDA_CommandLine -ib data/target_medium.bow -out uniform_target -t 15 -v 1 -lda -maxLike -alpha 3 -beta 800 -ldaIterations 1000 -seed 23`
+    `java -cp LDA-master/dist/LatentDirichletAllocation.jar org.rhwlab.lda.cache.matrix.LDA_CommandLine -ib data/atac_target.bow -out uniform_target -t 15 -v 1 -lda -maxLike -alpha 3 -beta 800 -ldaIterations 1000 -seed 123`
 
 ## Visualizing the results in Python
 
@@ -73,8 +73,8 @@ def load_dt(fn) :
     normalize_matrix_by_row(dt)
     return(dt)
 
-dt = load_dt(f"output/target_medium_topics15_alpha3.000_beta1000.000/MaxLikelihoodDocumentTopicCounts.txt")
-labels = pd.read_csv("target_labels.csv", header=None).to_numpy().flatten()
+dt = load_dt(f"output/atac_target_topics15_alpha3.000_beta1000.000/MaxLikelihoodDocumentTopicCounts.txt")
+labels = pd.read_csv("target_labels_large.csv", header=None).to_numpy().flatten()
 u = umap.UMAP(random_state=23)
 fitted = u.fit_transform(dt)
 sns.scatterplot(x=fitted[:, 0], s=4, y=fitted[:, 1], hue=labels, edgecolor=None)
@@ -83,20 +83,21 @@ plt.legend(bbox_to_anchor=(1.05, 1))
 
 This results in a UMAP image of the target data using the matrix prior.
 
-![matrix_prior_result.png](matrix_prior_result.png)
+![matrix_prior_result.png](target_matrix_prior.png)
+
 
 We can make a similar plot using the uniform prior, as follows:
 
 ```python
-dt = load_dt(f"uniform_target/target_medium_topics15_alpha3.000_beta800.000/MaxLikelihoodDocumentTopicCounts.txt")
-labels = pd.read_csv("target_labels.csv", header=None).to_numpy().flatten()
+dt = load_dt(f"uniform_target/atac_target_topics15_alpha3.000_beta800.000/MaxLikelihoodDocumentTopicCounts.txt")
+labels = pd.read_csv("target_labels_large.csv", header=None).to_numpy().flatten()
 u = umap.UMAP(random_state=23)
 fitted = u.fit_transform(dt)
 sns.scatterplot(x=fitted[:, 0], s=4, y=fitted[:, 1], hue=labels, edgecolor=None)
 plt.legend(bbox_to_anchor=(1.05, 1))
 ```
 
-![uniform prior result](uniform_prior_result.png)
+![uniform prior result.png](target_uniform_prior.png)
 
 ## Other options in the package
 
